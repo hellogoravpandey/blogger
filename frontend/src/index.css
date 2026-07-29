@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-surface-950 text-slate-100 font-sans antialiased min-h-screen;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-900;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-brand-600 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-brand-500;
+  }
+}
+
+@layer components {
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5
+           bg-brand-600 hover:bg-brand-500 active:scale-95
+           text-white font-semibold rounded-xl
+           transition-all duration-200 shadow-glow
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5
+           bg-surface-800 hover:bg-surface-700 active:scale-95
+           text-slate-200 font-semibold rounded-xl border border-slate-700 hover:border-brand-500
+           transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2
+           text-slate-400 hover:text-brand-400 hover:bg-surface-800
+           font-medium rounded-xl transition-all duration-200;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5
+           bg-red-600/10 hover:bg-red-600 active:scale-95
+           text-red-400 hover:text-white font-semibold rounded-xl border border-red-600/30 hover:border-red-600
+           transition-all duration-200;
+  }
+
+  /* ── Inputs ── */
+  .input-field {
+    @apply w-full px-4 py-3 bg-surface-900 border border-slate-700
+           text-slate-100 placeholder-slate-500 rounded-xl
+           focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20
+           transition-all duration-200;
+  }
+
+  .input-label {
+    @apply block text-sm font-medium text-slate-400 mb-1.5;
+  }
+
+  /* ── Cards ── */
+  .card {
+    @apply bg-surface-900 border border-slate-800 rounded-2xl
+           transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply card hover:border-brand-600/40 hover:shadow-card hover:-translate-y-0.5;
+  }
+
+  /* ── Glass effect ── */
+  .glass {
+    @apply bg-surface-900/80 backdrop-blur-md border border-slate-800/60;
+  }
+
+  /* ── Badge ── */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-published {
+    @apply badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/30;
+  }
+
+  .badge-draft {
+    @apply badge bg-amber-500/15 text-amber-400 border border-amber-500/30;
+  }
+
+  /* ── Gradient Text ── */
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-400 to-violet-400 bg-clip-text text-transparent;
+  }
+
+  /* ── Skeleton ── */
+  .skeleton {
+    @apply bg-gradient-to-r from-surface-800 via-surface-700 to-surface-800
+           bg-[length:200%_100%] animate-shimmer rounded-lg;
+  }
+
+  /* ── Page layout ── */
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-title {
+    @apply font-heading text-2xl font-bold text-slate-100;
+  }
+}
+
+/* Prose override for blog content */
+.blog-content {
+  @apply text-slate-300 leading-relaxed text-base;
+}
+.blog-content p {
+  @apply mb-4;
+}
+.blog-content h2 {
+  @apply text-2xl font-bold text-slate-100 mt-8 mb-4;
+}
+.blog-content h3 {
+  @apply text-xl font-semibold text-slate-100 mt-6 mb-3;
+}
+.blog-content ul {
+  @apply list-disc list-inside mb-4 space-y-1;
+}
+.blog-content ol {
+  @apply list-decimal list-inside mb-4 space-y-1;
+}
+.blog-content blockquote {
+  @apply border-l-4 border-brand-500 pl-4 italic text-slate-400 my-4;
+}
+.blog-content code {
+  @apply bg-surface-800 text-brand-300 px-1.5 py-0.5 rounded text-sm font-mono;
+}
+.blog-content pre {
+  @apply bg-surface-800 p-4 rounded-xl overflow-x-auto mb-4;
+}
