@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
 })
 
 function coverImageFilter(req, file, cb){
-  if(file.fieldname === "coverImageURL"){
+  if(file.fieldname === "coverImage"){
      if(file.mimetype=="image/jpeg" || file.mimetype=="image/png"){
              return cb(null, true);
          }
@@ -23,7 +23,7 @@ function coverImageFilter(req, file, cb){
 }
 
 function avatarFilter(req, file, cb){
-   if(file.fieldname === "profileImageURL"){
+   if(file.fieldname === "profileImage"){
      if(file.mimetype=="image/jpeg" || file.mimetype=="image/png"){
              return cb(null, true);
          }

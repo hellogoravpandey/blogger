@@ -1,5 +1,5 @@
 import {Router} from "express";
-import { getAllBlogs, addNewBlog, addNewComment, getBlogByID, updateBlog, deleteBlog, publishBlog, unpublishBlog, likeBlog, unlikeBlog, bookmarkBlog, unbookmarkBlog, updateComment, deleteComment} from "../controllers/blog.controller.js";
+import { getAllBlogs, addNewBlog, addNewComment, getBlogByID, updateBlog, deleteBlog, publishBlog, unpublishBlog, likeBlog, unlikeBlog, bookmarkBlog, unbookmarkBlog, updateComment, deleteComment, getTopLevelComments, getAllReplies} from "../controllers/blog.controller.js";
 import {uploadBlogCoverImage} from "../middlewares/multer.middleware.js";
 import { validateAndNormalizeBlog, validateAndNormalizeAddComment, validateAndNormalizeUpdateComment } from "../middlewares/blogValidation.middleware.js";
 
@@ -7,7 +7,7 @@ const router=Router();
 //dynamic routes must be in the last
 router.get("/", getAllBlogs);
 router.post("/",(req, res, next) => {
-     uploadBlogCoverImage.single('coverImageURL')(req, res, (err) => {
+     uploadBlogCoverImage.single('coverImage')(req, res, (err) => {
         if (err) {
             return res.status(400).json({
                 message: err.message
@@ -30,8 +30,9 @@ router.patch("/:id/unbookmark", unbookmarkBlog);
 router.post("/:id/comments", validateAndNormalizeAddComment, addNewComment);
 router.patch("/:blogid/comments/:commentid", validateAndNormalizeUpdateComment, updateComment);
 router.delete("/:blogid/comments/:commentid", deleteComment);
-router.get("/:id/comments", addNewComment);
-router.get("/:id/comments/:id/replies", addNewComment);
+router.get("/:blogid/comments", getTopLevelComments);
+router.get("/:blogid/comments/:commentid/replies", getAllReplies);
+
 export default router;
 
 

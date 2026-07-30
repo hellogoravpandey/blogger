@@ -8,6 +8,7 @@ import { uploadAvatar } from "../middlewares/multer.middleware.js";
 const router=Router();
 
 
+
 function requiredProfileImage(req, res, next){
     if(!req.file){
         return res.status(400).
@@ -20,7 +21,7 @@ function requiredProfileImage(req, res, next){
 
 
 router.post("/register", (req, res, next)=>{
-    uploadAvatar.single("profileImageURL")(req, res, (err)=>{
+    uploadAvatar.single("profileImage")(req, res, (err)=>{
          if (err) {
             return res.status(400).json({
                 message: err.message

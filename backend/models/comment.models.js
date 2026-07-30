@@ -40,7 +40,7 @@ const commentSchema=new mongoose.Schema({
         default: 0
     },
 
-    // to check the current depth of the reply
+    // to check the current depth of the comment(reply)
     depth: {
         type:Number,
         default:0,

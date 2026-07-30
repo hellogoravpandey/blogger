@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import fs from "fs";
 import User from "../models/user.models.js";
 import { measureMemory } from "vm";
+import cloudinary from "../src/config/cloudinary.config.js";
+import { deleteImage, uploadImage } from "../service/cloudinary.js";
 
 export async function getAllBlogs(req, res){
     // 1. whom a particular users blog 
@@ -25,25 +27,29 @@ export async function getAllBlogs(req, res){
 export async function addNewBlog(req, res){
     //multer added req.file and req.body 
     const {title, body: content}=req.body;
+    let uploadCoverImage=null;
     try {
+        //blog upload ( without using transcation)
+        if(req.file){
+            console.log("cover image path", req.file.path);
+            uploadCoverImage=await uploadImage(req.file.path);
+        }
         const blog=await Blog.create({
         title: title,
         body: content,
-        coverImageURL:req.file?.filename ?`/uploads/${req.file.filename}`:null,
+        coverImageURL: uploadCoverImage?.secure_url,
         createdBy: req.user===null?null:req.user.user_id
     });
     console.log("blog is created", blog);
     return res.status(201).json({
-        "message": "successfully created the blog"        
+        "message": "successfully created    the blog"        
     })
     } catch (error) {
         //need to delete the temp file
         console.log("error: ", error);
-        try {
-            await fs.unlink(`/public/uploads${req.file.filename}`);            
-        } catch (error) {
-            console.log("temp File deletion error", error);
-
+        //delete
+        if(uploadCoverImage){
+            await deleteImage(uploadCoverImage);
         }
         
         return res.status(500).json({
@@ -467,9 +473,7 @@ export async function updateComment(req, res){
 
     // blog exist?
     const blog =await Blog.findById(blogId);
-    console.log("blog", blog);
     if(!blog){
-        console.log("value of vlog insise !blog", blog)
         return res.status(404).json({
             message: "blog not found "
         });
@@ -620,4 +624,117 @@ export async function deleteComment (req, res){
     }
 
 };
+
+export async function getTopLevelComments( req, res){
+////validation
+// blogId validate?
+// !blog(published)--> blgnot found
+// page=params.page
+// skip=(page-1)*limit
+
+// // no need of transcation
+// //need only the top-level comments
+// allComment=Comment.find({blogId}.skip(skip).limit(limit).populate("createdBY",fdf ).sort();
+// allComment.map(comment=>{ if(comment.isDeleted) => {comment.isdeltem, dsf, fsf}
+
+const {page=1, limit=5, sort='latest'}=req.query;
+const {blogid: blogId}=req.params;
+//validate blogId
+if(!mongoose.Types.ObjectId.isValid(blogId)){
+        return res.status(400).json({
+            message: "invalid blogId"
+        });
+    };
+
+//make sure Number
+page=Number(page); // problem --> NaN
+limit=Number(limit);
+
+const sortOptions ={
+    "latest": {
+        createdAt: -1
+    },
+    "oldest": {
+        createdAt: 1
+    },
+    "mostLiked": {
+        likeCount: -1
+    },
+    "modified": {
+        modifiedAt: -1 
+    }
+};
+
+// blog that is published is only allowed to send this ==> no need to check 
+const allComments = await Comment.find({blogId: blogId, parentComment: null, isDeleted: false})
+.populate("createdBy", "username profileImageURL isVerified")
+.sort(sortOptions[sort] || sortOptions.latest)
+.skip((page-1)*limit)
+.limit(limit);
+
+
+const totalComments=await Comment.countDocuments({
+    blogId: blogId,
+    parentComment: null,
+    isDeleted: false
+});
+
+return res.status(200).json({
+    message: "success",
+    page: page,
+    totalPages: Math.ceil(totalCommentsCount/limit),
+    limit: limit, 
+    totalComments: totalComments,
+    comments: allComments,
+   
+})
+};
+
+export async function getAllReplies(req, res){
+    //steps 
+    //replies ( only depth 1 replies )
+    // !comment---> errro
+    //  comment.find({parentCOmment: CommentId, isDeleted: false,  }).populate("createdBy");
+    //return 
+
+    const { blogid: blogId, commentid: commentId}=req.params;
+    //valid ids
+    if(!mongoose.Types.ObjectId.isValid(blogId)){
+    return res.status(400).json({
+        message: "invalid blogId"
+    });
+    };
+    if(!mongoose.Types.ObjectId.isValid(commentId)){
+    return res.status(400).json({
+        message: "invalid commentId"
+    });
+    };
+
+    const comment = await Comment.findById(commentId);
+    if(!comment){
+    return res.status(404).json({
+        message:"comment not found"
+    });
+    }
+    try {
+        const replies=await Comment.find({
+            parentComment: commentId,
+            isDeleted: false
+        })
+        .populate("createdBy", "username profileImageURL isVerified")
+        .sort({createdAt: -1});
+
+        return res.status(200).json({
+            message: "success",
+            totalReplies: replies.length,
+            replies: replies
+    })
+    } catch (error) {
+        console.log("error inside getAllReplies");
+        return res.status(500).json({
+            message: "internal server error"
+        });
+    }
+    
+}
 

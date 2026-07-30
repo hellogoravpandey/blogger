@@ -65,6 +65,3 @@ export function validateAndNormalizeUpdateComment(req, res, next){
     next();
 }
 
-
-
-

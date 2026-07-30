@@ -5,23 +5,35 @@ import Session from "../models/session.models.js";
 import mongoose from "mongoose";
 import { generateOTP, sendOtpVerificationEmail } from "../utils/OtpVerificationEmail.utils.js";
 import OtpRecords from "../models/otp.models.js";
+import { deleteImage, uploadImage } from "../service/cloudinary.js";
 
 export async function register(req, res){
     const {username, email, password }=req.body;
     //hash password
     const hashedPassword=createHashOf(password);
     //create user
+    let uploadedProfileImage=null;
     try {
+        //cloudinary upload, before db create--> no need of transaction
+        console.log("path of the profile image; ", req.file);
+        if(req.file){
+            uploadedProfileImage=await uploadImage(req.file.path);
+        }
          const user=await User.create({
             username,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            profileImageURL: uploadedProfileImage?.secure_url
         }); 
         return res.status(201).json({
             message: "user successfully created"
         });
     } catch (error) {
-        console.log("Error in creating user", error );
+        console.log("Error in register controller: ", error );
+        //delete the uploaded file
+        if(uploadedProfileImage){
+            await deleteImage(uploadedProfileImage);
+        }
         return res.status(500).json({
             message: "Internal server error"
         });
