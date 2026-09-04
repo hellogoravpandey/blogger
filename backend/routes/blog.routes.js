@@ -2,6 +2,7 @@ import {Router} from "express";
 import { getAllBlogs, addNewBlog, addNewComment, getBlogByID, updateBlog, deleteBlog, publishBlog, unpublishBlog, likeBlog, unlikeBlog, bookmarkBlog, unbookmarkBlog, updateComment, deleteComment, getTopLevelComments, getAllReplies} from "../controllers/blog.controller.js";
 import {uploadBlogCoverImage} from "../middlewares/multer.middleware.js";
 import { validateAndNormalizeBlog, validateAndNormalizeAddComment, validateAndNormalizeUpdateComment } from "../middlewares/blogValidation.middleware.js";
+import { AppError, BadRequestError } from "../utils/errorHandler.utils.js";
 
 const router=Router();
 //dynamic routes must be in the last
@@ -9,9 +10,7 @@ router.get("/", getAllBlogs);
 router.post("/",(req, res, next) => {
      uploadBlogCoverImage.single('coverImage')(req, res, (err) => {
         if (err) {
-            return res.status(400).json({
-                message: err.message
-            });
+            return next(err instanceof AppError ? err : new BadRequestError(err.message));
         }
         next();
     });}

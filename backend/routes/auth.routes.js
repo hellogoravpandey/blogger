@@ -4,6 +4,7 @@ import { register, login, refreshToken, logout, verifyOtp, sendOtp, getUserInfo 
 import { validate } from "../middlewares/validation.middleware.js";
 import { validateEmail, validateUsername, validatePassword, validateOtp } from "../validators/userAuth.validators.js";
 import { uploadAvatar } from "../middlewares/multer.middleware.js";
+import { AppError, BadRequestError } from "../utils/errorHandler.utils.js";
 
 const router=Router();
 
@@ -12,9 +13,7 @@ const router=Router();
 router.post("/register", (req, res, next)=>{
     uploadAvatar.single("profileImage")(req, res, (err)=>{
          if (err) {
-            return res.status(400).json({
-                message: err.message
-            });
+            return next(err instanceof AppError ? err : new BadRequestError(err.message));
         }
         next();
     });},
