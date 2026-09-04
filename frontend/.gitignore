@@ -1,0 +1,8 @@
+# Vite / frontend build output
+dist/
+dist-ssr/
+*.local
+
+# ESLint
+eslint.config.js.timestamp-*
+

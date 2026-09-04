@@ -1,0 +1,14 @@
+# Secrets (also ignored at repo root)
+.env
+.env.*
+!.env.example
+
+# Morgan access log
+access.log
+
+# Multer disk uploads
+public/uploads/
+!public/uploads/.gitkeep
+
+
+# notes
