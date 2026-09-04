@@ -1,28 +1,23 @@
 import Blog from "../models/blog.models.js";
 import Comment from "../models/comment.models.js";
 import mongoose from "mongoose";
-import fs from "fs";
 import User from "../models/user.models.js";
-import { measureMemory } from "vm";
-import cloudinary from "../src/config/cloudinary.config.js";
 import { deleteImage, uploadImage } from "../service/cloudinary.js";
+import {
+    BadRequestError,
+    ForbiddenRequestError,
+    NotFoundRequestError,
+    UnauthorizedRequestError,
+} from "../utils/errorHandler.utils.js";
 
 
 export async function   getAllBlogs(req, res){
-
-    // offset pagination implementation
-    // user = GET http://localhost:8004/blogs?page=3&limit=10
-    
-    try {
         let page = parseInt(req.query.page) || 1;
         let limit = parseInt(req.query.limit) || 6;  
 
-        //safety check
         page = Math.max(page, 1);
         limit = Math.min(limit, 50);
-        //skip
         const skip = (page-1)*limit
-        //concurrently retrieving both of them 
         const [blogs, totalBlogs] = await Promise.all([
             Blog.find({})
             .sort({createdAt: -1})
@@ -42,24 +37,14 @@ export async function   getAllBlogs(req, res){
                 totalPages
             } 
     })
-    } catch (error) {
-        console.log("Error inside geAllBlogs", error);
-        res.status(500).json({
-            message: "failed to fetch blogs"
-        })
-    }
-    
-
 }
 
 
 
 export async function addNewBlog(req, res){
-    //multer added req.file and req.body 
     const {title, body: content}=req.body;
     let uploadCoverImage=null;
     try {
-        //blog upload ( without using transcation)
         if(req.file){
             console.log("cover image path", req.file.path);
             uploadCoverImage=await uploadImage(req.file.path);
@@ -75,37 +60,23 @@ export async function addNewBlog(req, res){
         "message": "successfully created    the blog"        
     })
     } catch (error) {
-        //need to delete the temp file
         console.log("error: ", error);
-        //delete
         if(uploadCoverImage){
             await deleteImage(uploadCoverImage);
         }
-        
-        return res.status(500).json({
-            "message": "Internal server error"
-        })
-
+        throw error;
     } 
    
 }
 
 export async function  getBlogByID(req, res){
-    // 1. cont blog_id=req.params.id
-    // 2. const blog=Blog.findOne({_id: blog_id}).populate("createdBy", "username");
-    // 3. return res.status(200).
-
     const blogId=req.params.id;
     if(!mongoose.Types.ObjectId.isValid(blogId)){
-        return res.status(400).json({
-            message: "invalid blog id"
-        });
+        throw new BadRequestError("invalid blog id");
     }
     const blog= await Blog.findOne({_id: blogId}).populate("createdBy", "username isVerified profileImageURL");
     if(!blog){
-        return res.staus(404).json({
-            message: "blog not found"
-        });
+        throw new NotFoundRequestError("blog not found");
     }
     return res.status(200).json({
         message: "success",
@@ -114,32 +85,17 @@ export async function  getBlogByID(req, res){
 }
 
 export async function updateBlog(req, res){
-    // 1. blog_id=req.params.id
-    // 2. blog-> Blog.find({blog_id})
-    // 3. !blog --> return res.
-    // 4. blog.createdBy === req.body.user._id ==> res
-    // 4. blog.title, blog.coontent ...
-    // 4. await blog.save();
-    // 5. return res
-    
     const blogId=req.params.id;
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-        return res.status(400).json({
-            message: "Invalid blog id"
-        });
+        throw new BadRequestError("Invalid blog id");
     }
     const blog=await Blog.findOne({_id: blogId});
     if(!blog){
-        return res.status(404).json({
-            message: "blog not found"
-        });
+        throw new NotFoundRequestError("blog not found");
     };
     if(blog.createdBy !== req.user._id){
-        return res.status(403).json({
-            message: "unauthorized user"
-        });
+        throw new ForbiddenRequestError("unauthorized user");
     };
-    // updating the required field (if present)
     const {title, body}=req.body;
     blog.title=title;
     blog.body=body;
@@ -150,29 +106,17 @@ export async function updateBlog(req, res){
 }
 
 export async function deleteBlog(req, res){
-    // blogId =req.params.id
-    // blog=Blog.findById(blogId)
-    // !blog=> return res
-    // blog.createdBy !== req.user_d ==> return res not authorized
-    // await blog.deleteOne();
-    // return res
     const blogId=req.params.id;
      if (!mongoose.Types.ObjectId.isValid(blogId)) {
-        return res.status(400).json({
-            message: "Invalid blog id"
-        });
+        throw new BadRequestError("Invalid blog id");
     }
     const blog =await Blog.findById(blogId);
     if(!blog){
-        return res.status(404).json({
-            message: "blog not found"
-        });
+        throw new NotFoundRequestError("blog not found");
     };
 
     if(blog.createdBy !== req.user._id){
-        return res.status(403).json({
-            "message": "unauthorized user"
-        });
+        throw new ForbiddenRequestError("unauthorized user");
     };
     await blog.deleteOne();
     return res.status(204).json({
@@ -182,29 +126,16 @@ export async function deleteBlog(req, res){
 }
 
 export async function publishBlog(req, res){
-    //1. blog = findById(req.body.id)
-    //2. !blog--> blog not found
-    //3. blog.createdBy !== req.user.user_id ==> unauthorized
-    //4. blog.status="published"
-    //5. blog.publishedAt = new Date.now();
-    //6. await blog.save()
-    //7. ==> messag: success
     const blogId=req.params.id;
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-        return res.status(400).json({
-            message: "Invalid blog id"
-        });
+        throw new BadRequestError("Invalid blog id");
     }
     const blog=await Blog.findById(blogId);
     if(!blog){
-        return res.status(404).json({
-            message: "blog not found"
-        });
+        throw new NotFoundRequestError("blog not found");
     };
     if(blog.createdBy !== req.user._id){
-        return res.status(403).json({
-            message: "unauthorized change"
-        });
+        throw new ForbiddenRequestError("unauthorized change");
     };
     blog.status="published";
     blog.publishedAt=new Date();
@@ -217,20 +148,14 @@ export async function publishBlog(req, res){
 export async function unpublishBlog(req, res){
     const blogId=req.params.id;
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-        return res.status(400).json({
-            message: "Invalid blog id"
-        });
+        throw new BadRequestError("Invalid blog id");
     }
     const blog=await Blog.findById(blogId);
     if(!blog){
-        return res.status(404).json({
-            message: "blog not found"
-        });
+        throw new NotFoundRequestError("blog not found");
     };
     if(blog.createdBy !== req.user._id){
-        return res.status(403).json({
-            message: "unauthorized change"
-        });
+        throw new ForbiddenRequestError("unauthorized change");
     };
     blog.status="draft";
     await blog.save();
@@ -240,33 +165,19 @@ export async function unpublishBlog(req, res){
 } 
 
 export async function likeBlog(req, res){
-    // blog = findById(req.params.id)
-    // !blog
-    // !req.user  ( null --> not a logged user)
-    // blog.likes.push(req.user._id);
-    // return res.status(203)
-    
     if(!req.user){
-        return res.status(401).json({
-            message: "log in to like a post"
-        })
+        throw new UnauthorizedRequestError("log in to like a post");
     }
     const blogId=req.params.id;
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-        return res.status(400).json({
-            message: "Invalid blog id"
-        });
+        throw new BadRequestError("Invalid blog id");
     }
     const blog=await Blog.findById(blogId);
     if(!blog){
-        return res.status(404).json({
-            message: "blog not found"
-        });
+        throw new NotFoundRequestError("blog not found");
     };
     if(blog.likes.includes(req.user.user_id)){
-        return res.status(400).json({
-            message: "already liked"
-        });
+        throw new BadRequestError("already liked");
     };
     console.log("value of req.user._id", req.user.user_id);
     console.log("value of user", req.user);
@@ -280,33 +191,19 @@ export async function likeBlog(req, res){
 }
 
 export async function unlikeBlog(req, res){
-    // blog = findById(req.params.id)
-    // !blog
-    // !req.user  ( null --> not a logged user)
-    // blog.likes.push(req.user._id);
-    // return res.status(203)
-
     if(!req.user){
-        return res.status(401).json({
-            message: "login required to like a post"
-        })
+        throw new UnauthorizedRequestError("login required to like a post");
     }
     const blogId=req.params.id;
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-        return res.status(400).json({
-            message: "Invalid blog id"
-        });
+        throw new BadRequestError("Invalid blog id");
     }
     const blog=await Blog.findById(blogId);
     if(!blog){
-        return res.status(404).json({
-            message: "blog not found"
-        });
+        throw new NotFoundRequestError("blog not found");
     };
     if(!blog.likes.includes(req.user.user_id)){
-        return res.status(400).json({
-            message: "already unliked"
-        });
+        throw new BadRequestError("already unliked");
     };
     blog.likes.pull(req.user.user_id);
     await blog.save();
@@ -317,20 +214,16 @@ export async function unlikeBlog(req, res){
 
 export async function bookmarkBlog(req, res) {
     if(!req.user){
-        return res.status(401).json({
-            message: "login required to bookmark a post" 
-        })
+        throw new UnauthorizedRequestError("login required to bookmark a post");
     }
     const user = await User.findOne({_id: req.user.user_id});
     if(user.bookmarks.includes(req.params.id)){
-        return res.status(400).json({
-            message: "already bookmarked"
-        })
+        throw new BadRequestError("already bookmarked");
     };
     await User.findOneAndUpdate({_id: req.user.user_id},
         {
             $addToSet:{
-                bookmarks: req.params.id // blog_id is saved in each user
+                bookmarks: req.params.id
             }
         }
     );
@@ -341,15 +234,11 @@ export async function bookmarkBlog(req, res) {
 
 export async function unbookmarkBlog(req, res) {
     if(!req.user){
-        return res.status(401).json({
-            message: "login required to bookmark a post" 
-        })
+        throw new UnauthorizedRequestError("login required to bookmark a post");
     }
     const user = await User.findOne({_id: req.user.user_id});
     if(!user.bookmarks.includes(req.params.id)){
-        return res.status(400).json({
-            message: "already unbookmarked"
-        })
+        throw new BadRequestError("already unbookmarked");
     }
     await User.findOneAndUpdate({_id: req.user.user_id},
         {
@@ -363,71 +252,35 @@ export async function unbookmarkBlog(req, res) {
     })
 }
 
-// comment controllers
 export async function addNewComment(req, res){
-// steps
-// // post /blogs/:id/comment
-// 1. authenticate the req.user
-// 1. params.id
-// 2. blog --> at ( id) ( published: true)
-// transaction
-// validate reply 
-// parentcomment = comment.findByID(parentCommet)
-// if(parentcomment.depth) > 1 ==> "cant comment"
-// parent.blog. !=== blogId  ==> invalid comment,  
-// create comment --> Comment.create()
-// blog.commentCount++
-// if(parentComment)
-// //end
-
-
 const indexes = await Comment.collection.indexes();
 console.log("indexes are: ", indexes);
 
-// login user only
 if(!req.user){
-    return res.status(401).json({
-        message: "login required "
-    });
+    throw new UnauthorizedRequestError("login required ");
 };
 const blogId=req.params.id;
-// valid blogId?
 if(!mongoose.Types.ObjectId.isValid(blogId)){
-    return res.status(400).json({
-        message: "invalid blogId"
-    });
+    throw new BadRequestError("invalid blogId");
 };
-//valid blogId, blog published ?? 
-const blog=await Blog.findOne({_id: blogId, status: "published"});   // it return reference to the heap obj  storage, but still it is not a mongoDB document reference  
+const blog=await Blog.findOne({_id: blogId, status: "published"});
 if(!blog){
-    return res.status(404).json({
-        message: "blog not found"
-    });
+    throw new NotFoundRequestError("blog not found");
 };
 
-// anyone logged in user can comment in a post, no authentication 
 const {content, parentComment}=req.body;
 const mongoSession=await mongoose.startSession();
 try {
     mongoSession.startTransaction();
-    //valid reply?
     const parent=await Comment.findById(parentComment);
-    // when no parent depth=0
     let depth=0;
     if(parent){
         if(parent.depth > 1){
-        return res.status(400).json({
-            message: "reply depth exceeds"
-        })
+        throw new BadRequestError("reply depth exceeds");
     }
-    // valid reply
-    //valid parent comment?  
     if(parent.blogId.toString() !== blogId ){
-        return res.status(400).json({
-            message: "invalid parent comment"
-        })
+        throw new BadRequestError("invalid parent comment");
     }
-    //depth 
     depth=parent.depth + 1;
     };
     const [comment]=await Comment.create([{
@@ -438,21 +291,12 @@ try {
         depth: depth
     }], {session: mongoSession});
 
-    // blog comment ++   ----> // will create concurrency problem in future
-    // blog.commentCount++;
-    // blog.save({session: mongoSession});
-
-    // atomic way latest read and write
     await Blog.updateOne({_id: blogId}, {
         $inc : {
             commentCount: 1
         }
     }, {session: mongoSession});
-    //parent reply add
     if(parent){
-    // parent.repliesCount++;
-    // parent.save({session: mongoSession});
-    // attomic latest-read and update
     await Comment.updateOne({_id: parentComment}, {
         $inc: {
             repliesCount: 1
@@ -460,8 +304,6 @@ try {
     });
     }
     await comment.populate("createdBy", "username profileImageURL isVerified");
-    //create
-    //commit
     await mongoSession.commitTransaction();
     return res.status(201).json({
         message: "success",
@@ -470,76 +312,38 @@ try {
 } catch (error) {
     console.log("comment create db error; ",error);
     await mongoSession.abortTransaction();
-    return res.status(500).json({
-        message: "internal server error"
-    });
+    throw error;
 }finally{
     await mongoSession.endSession();
 }
 }
 
 export async function updateComment(req, res){
-    //steps 
-    // !req.user --> login required 
-    // {blogId, commentId }= req.params
-    // blogId and commentId --> valid ??
-    // blog =blog.find({ blogid,published})
-    // !blog --> error 
-    // comment --> exist ?? 
-    // !comment --> error
-    // authenticate user for the comment 
-    // comment.createdBy !== req.user.user_id ==> error
-    // update -->
-    // {title, content}= req.body
-    // comment.title =title
-    // comment.content=content
-    // await comment.save()
-     //only logged in user 
-    
-   
          if(!req.user){
-        return res.status(401).json({
-            message: "login required "
-        });
+        throw new UnauthorizedRequestError("login required ");
     };
     const {blogid: blogId, commentid: commentId}=req.params;
     console.log("blogId inside the updatecomment controller", blogId, "  ", commentId);
     const {content }=req.body;
-    // valid blogId?
     if(!mongoose.Types.ObjectId.isValid(blogId)){
-        return res.status(400).json({
-            message: "invalid blogId"
-        });
+        throw new BadRequestError("invalid blogId");
     };
-    //commentId
     if(!mongoose.Types.ObjectId.isValid(commentId)){
-        return res.status(400).json({
-            message: "invalid commentId"
-        });
+        throw new BadRequestError("invalid commentId");
     };
 
-    // blog exist?
     const blog =await Blog.findById(blogId);
     if(!blog){
-        return res.status(404).json({
-            message: "blog not found "
-        });
+        throw new NotFoundRequestError("blog not found ");
     };
-    // comment exist?
     const comment =await Comment.findById(commentId);
     if(!comment){
-        return res.status(404).json({
-            message: "comment not found"
-        });
+        throw new NotFoundRequestError("comment not found");
     };
-    // authorization check ( only the creater can update)
     console.log("req.user.-di", req.user.user_id);
     if(comment.createdBy.toString()!== req.user.user_id){
-        return res.status(403).json({
-            "message": "unauthorized user"
-        });
+        throw new ForbiddenRequestError("unauthorized user");
     };
-    //update
     comment.content=content;
     comment.populate("createdBy", "username profileImageURL isVerified");
     await comment.save();    
@@ -548,83 +352,46 @@ export async function updateComment(req, res){
         message: "succefully updated",
         comment: comment
     });
-    
-
 }
 
 export async function deleteComment (req, res){
-    // export async function deleteComment(req, res){
-    //    // !req.user --> error
-    //    // {blogId, commentId}
-    //    // !blogId
-    //    // !commentId
-    //    // authorized user can delete the comment
-    //    // transaction
-    //    // if(comment.parentComment) ==> softdelete
-    //    // hard delete 
-    //    //   await Comment.findByIdUpdate({comment.parentComment}, $dec:{counted }).
-    //    // await blog.commentCount--; 
-    // } 
     const mongoSession = await mongoose.startSession();
     try {
         mongoSession.startTransaction();
         const {blogId, commentId} = req.params;
         const userId = req.user._id;
         
-        // blogId valid?
         if(!mongoose.Types.ObjectId.isValid(blogId)){
-        return res.status(400).json({
-            message: "invalid blogId"
-        });};
+        throw new BadRequestError("invalid blogId");
+        };
 
-        //commentId valid?
         if(!mongoose.Types.ObjectId.isValid(commentId)){
-        return res.status(400).json({
-            message: "invalid commentId"
-        });
+        throw new BadRequestError("invalid commentId");
     };
-        // blog exist?
         const blog = await Blog.findById(blogId)
             .session(session);
         if (!blog) {
-            await mongoSession.abortTransaction();
-            return res.status(404).json({
-                message: "blog not found."
-            });
+            throw new NotFoundRequestError("blog not found.");
         }
 
-        // comment exist?
         const comment = await Comment.findById(commentId)
             .session(session);
         if (!comment) {
-            await mongoSession.abortTransaction();
-            return res.status(404).json({
-                message: "Comment not found."
-            });
+            throw new NotFoundRequestError("Comment not found.");
         }
         
-        //alreadu deleted
         if (comment.isDeleted === true) {
-            await mongoSession.abortTransaction();
-            return res.status(400).json({
-                message: "Comment already deleted."
-            });
+            throw new BadRequestError("Comment already deleted.");
         }
 
-        //authorization
         if (comment.createdBy.toString() !== userId.toString()) {
-            await mongoSession.abortTransaction();
-            return res.status(403).json({
-                message: "You are not authorized to delete this comment."
-            });
+            throw new ForbiddenRequestError("You are not authorized to delete this comment.");
         }
 
-        //soft delete
         comment.isDeleted = true;
         comment.deletedAt = new Date();
         await comment.save({ mongoSession });
      
-        //update blog commentCount 
         await Blog.findByIdAndUpdate(
             comment.blogId,
             {
@@ -637,7 +404,6 @@ export async function deleteComment (req, res){
             }
         );
         
-        // update parentComment reply count
         if (comment.parentComment) {
             await Comment.findByIdAndUpdate(
                 comment.parentComment,
@@ -652,7 +418,6 @@ export async function deleteComment (req, res){
             );
         }
 
-        //commit
         await mongoSession.commitTransaction();
         return res.status(200).json({
             message: "Comment deleted successfully."
@@ -662,9 +427,7 @@ export async function deleteComment (req, res){
     catch (error) {
         await mongoSession.abortTransaction();
         console.error(error);
-        return res.status(500).json({
-            message: "Internal server error"
-        });
+        throw error;
     }
     finally {
         mongoSession.endSession();
@@ -673,28 +436,13 @@ export async function deleteComment (req, res){
 };
 
 export async function getTopLevelComments( req, res){
-////validation
-// blogId validate?
-// !blog(published)--> blgnot found
-// page=params.page
-// skip=(page-1)*limit
-
-// // no need of transcation
-// //need only the top-level comments
-// allComment=Comment.find({blogId}.skip(skip).limit(limit).populate("createdBY",fdf ).sort();
-// allComment.map(comment=>{ if(comment.isDeleted) => {comment.isdeltem, dsf, fsf}
-
 const {page=1, limit=5, sort='latest'}=req.query;
 const {blogid: blogId}=req.params;
-//validate blogId
 if(!mongoose.Types.ObjectId.isValid(blogId)){
-        return res.status(400).json({
-            message: "invalid blogId"
-        });
+        throw new BadRequestError("invalid blogId");
     };
 
-//make sure Number
-page=Number(page); // problem --> NaN
+page=Number(page);
 limit=Number(limit);
 
 const sortOptions ={
@@ -712,7 +460,6 @@ const sortOptions ={
     }
 };
 
-// blog that is published is only allowed to send this ==> no need to check 
 const allComments = await Comment.find({blogId: blogId, parentComment: null, isDeleted: false})
 .populate("createdBy", "username profileImageURL isVerified")
 .sort(sortOptions[sort] || sortOptions.latest)
@@ -738,32 +485,18 @@ return res.status(200).json({
 };
 
 export async function getAllReplies(req, res){
-    //steps 
-    //replies ( only depth 1 replies )
-    // !comment---> errro
-    //  comment.find({parentCOmment: CommentId, isDeleted: false,  }).populate("createdBy");
-    //return 
-
     const { blogid: blogId, commentid: commentId}=req.params;
-    //valid ids
     if(!mongoose.Types.ObjectId.isValid(blogId)){
-    return res.status(400).json({
-        message: "invalid blogId"
-    });
+    throw new BadRequestError("invalid blogId");
     };
     if(!mongoose.Types.ObjectId.isValid(commentId)){
-    return res.status(400).json({
-        message: "invalid commentId"
-    });
+    throw new BadRequestError("invalid commentId");
     };
 
     const comment = await Comment.findById(commentId);
     if(!comment){
-    return res.status(404).json({
-        message:"comment not found"
-    });
+    throw new NotFoundRequestError("comment not found");
     }
-    try {
         const replies=await Comment.find({
             parentComment: commentId,
             isDeleted: false
@@ -776,12 +509,4 @@ export async function getAllReplies(req, res){
             totalReplies: replies.length,
             replies: replies
     })
-    } catch (error) {
-        console.log("error inside getAllReplies");
-        return res.status(500).json({
-            message: "internal server error"
-        });
-    }
-    
 }
-
