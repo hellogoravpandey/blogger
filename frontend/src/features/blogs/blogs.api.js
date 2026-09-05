@@ -17,3 +17,13 @@ export const createBlog = (formData)=>{
     });
        
 }
+
+export const uploadBlogImage = (file, draftId) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("draftId", draftId);
+    return apiFetch("/uploads/image", {
+        method: "POST",
+        body: formData,
+    });
+};

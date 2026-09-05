@@ -4,8 +4,9 @@ const blogSchema=new mongoose.Schema({
         type: String,
         required: true,  
     },
-    body: {
-        type: String, 
+    content: {
+        type: mongoose.Schema.Types.Mixed,
+        required: true,
     },
     coverImageURL:{
         type: String,
@@ -13,6 +14,10 @@ const blogSchema=new mongoose.Schema({
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users'
+    },
+    draftId: {
+        type: String,
+        index: true
     },
     //status
     status:{

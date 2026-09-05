@@ -3,7 +3,11 @@ import scenary from "../../../assets/scenary.jpg"
 import { Link } from "react-router-dom";
 import { formatDate } from "../../../utils/formatData";
 function BlogCard({blog}) { 
- const {title, body, createdBy, createdAt, coverImageURL, readTime} = blog
+ const {title, body, content, createdBy, createdAt, coverImageURL, readTime} = blog
+ const preview = body || (content?.content || [])
+     .flatMap((node) => node.content || [])
+     .map((node) => node.text || "")
+     .join(" ");
   return (
     <article className="group cursor-pointer">
         {/* images   */}
@@ -23,7 +27,7 @@ function BlogCard({blog}) {
 
             {/* describtion */}
             <p className="mt-3 line-clamp-2 text-base leading-relaxed text-gray-700">
-                {body.slice(0, 80)}..
+                {preview.slice(0, 80)}..
             </p>
 
             {/* author + metadata */}

@@ -1,4 +1,5 @@
 import { BadRequestError, ValidationError } from "../utils/errorHandler.utils.js";
+import { isTiptapDocument } from "../utils/assetContent.utils.js";
 
 function assertBodyPresent(req) {
   if (!req.body) {
@@ -9,15 +10,23 @@ function assertBodyPresent(req) {
 export function validateAndNormalizeBlog(req, res, next) {
   try {
     assertBodyPresent(req);
-    const { title, body: content } = req.body;
+    const { title } = req.body;
+    let { content } = req.body;
     if (!title || title.trim() === "") {
       throw new ValidationError("title is required");
     }
-    if (!content || content.trim() === "") {
-      throw new ValidationError("body is required");
+    if (typeof content === "string") {
+      try {
+        content = JSON.parse(content);
+      } catch {
+        throw new ValidationError("content must be valid Tiptap JSON");
+      }
+    }
+    if (!isTiptapDocument(content)) {
+      throw new ValidationError("valid Tiptap content is required");
     }
     req.body.title = title.trim();
-    req.body.body = content.trim();
+    req.body.content = content;
     next();
   } catch (error) {
     next(error);

@@ -3,7 +3,8 @@ import {createHashOf}  from "../service/hashing.service.js";
 import { setJWTToken, validateJWTToken } from "../service/jwtauthenticationservice.js";
 import Session from "../models/session.models.js";
 import mongoose from "mongoose";
-import { generateOTP, sendOtpVerificationEmail } from "../utils/OtpVerificationEmail.utils.js";
+import {sendOtpVerificationEmail } from "../utils/OtpVerificationEmail.utils.js";
+import generateOTP from "../utils/generateOTP.utils.js";
 import OtpRecords from "../models/otp.models.js";
 import { deleteImage, uploadImage } from "../service/cloudinary.js";
 import googleClient from "../src/config/google.config.js";
@@ -44,6 +45,7 @@ export async function register(req, res){
             password: hashedPassword,
             profileImageURL: uploadedProfileImage?.secure_url
         }); 
+        // added the jonb into the queue 
         await emailQueue.add("welcome-email", {
             to: email,
             username: username

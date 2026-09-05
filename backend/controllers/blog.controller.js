@@ -2,7 +2,10 @@ import Blog from "../models/blog.models.js";
 import Comment from "../models/comment.models.js";
 import mongoose from "mongoose";
 import User from "../models/user.models.js";
+import Asset from "../models/asset.models.js";
 import { deleteImage, uploadImage } from "../service/cloudinary.js";
+import { extractAssetIds } from "../utils/assetContent.utils.js";
+import { attachDraftAssets, reconcileDraftAssets, validateDraftAssets } from "../service/asset.service.js";
 import {
     BadRequestError,
     ForbiddenRequestError,
@@ -42,7 +45,12 @@ export async function   getAllBlogs(req, res){
 
 
 export async function addNewBlog(req, res){
-    const {title, body: content}=req.body;
+    if(!req.user){
+        throw new UnauthorizedRequestError("login required to create a blog");
+    }
+    const {title, content, draftId}=req.body;
+    const assetIds = extractAssetIds(content);
+    await reconcileDraftAssets({ assetIds, ownerId: req.user.user_id, draftId });
     let uploadCoverImage=null;
     try {
         if(req.file){
@@ -51,9 +59,10 @@ export async function addNewBlog(req, res){
         }
         const blog=await Blog.create({
         title: title,
-        body: content,
+        content,
+        draftId,
         coverImageURL: uploadCoverImage?.secure_url,
-        createdBy: req.user===null?null:req.user.user_id
+        createdBy: req.user.user_id
     });
     console.log("blog is created", blog);
     return res.status(201).json({
@@ -85,6 +94,9 @@ export async function  getBlogByID(req, res){
 }
 
 export async function updateBlog(req, res){
+    if(!req.user){
+        throw new UnauthorizedRequestError("login required to update a blog");
+    }
     const blogId=req.params.id;
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
         throw new BadRequestError("Invalid blog id");
@@ -93,19 +105,29 @@ export async function updateBlog(req, res){
     if(!blog){
         throw new NotFoundRequestError("blog not found");
     };
-    if(blog.createdBy !== req.user._id){
+    if(blog.createdBy.toString() !== req.user.user_id.toString()){
         throw new ForbiddenRequestError("unauthorized user");
     };
-    const {title, body}=req.body;
+    const {title, content, draftId}=req.body;
+    const assetIds = extractAssetIds(content);
+    await reconcileDraftAssets({
+        assetIds,
+        ownerId: req.user.user_id,
+        draftId: draftId || blog.draftId,
+    });
     blog.title=title;
-    blog.body=body;
+    blog.content=content;
+    blog.draftId=draftId || blog.draftId;
     await blog.save();
-    return res.status(204).json({
+    return res.status(200).json({
         message: "successfully updated the blog"
     });
 }
 
 export async function deleteBlog(req, res){
+    if(!req.user){
+        throw new UnauthorizedRequestError("login required to delete a blog");
+    }
     const blogId=req.params.id;
      if (!mongoose.Types.ObjectId.isValid(blogId)) {
         throw new BadRequestError("Invalid blog id");
@@ -115,17 +137,24 @@ export async function deleteBlog(req, res){
         throw new NotFoundRequestError("blog not found");
     };
 
-    if(blog.createdBy !== req.user._id){
+    if(blog.createdBy.toString() !== req.user.user_id.toString()){
         throw new ForbiddenRequestError("unauthorized user");
     };
+    await Asset.updateMany(
+        { blogId: blog._id, status: "ATTACHED" },
+        { $set: { status: "UNUSED", blogId: null } },
+    );
     await blog.deleteOne();
-    return res.status(204).json({
+    return res.status(200).json({
         message: "deleted the blog"
     })
 
 }
 
 export async function publishBlog(req, res){
+    if(!req.user){
+        throw new UnauthorizedRequestError("login required to publish a blog");
+    }
     const blogId=req.params.id;
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
         throw new BadRequestError("Invalid blog id");
@@ -134,18 +163,28 @@ export async function publishBlog(req, res){
     if(!blog){
         throw new NotFoundRequestError("blog not found");
     };
-    if(blog.createdBy !== req.user._id){
+    if(blog.createdBy.toString() !== req.user.user_id.toString()){
         throw new ForbiddenRequestError("unauthorized change");
     };
+    const assetIds = extractAssetIds(blog.content);
+    await attachDraftAssets({
+        assetIds,
+        ownerId: req.user.user_id,
+        draftId: blog.draftId,
+        blogId: blog._id,
+    });
     blog.status="published";
     blog.publishedAt=new Date();
     await blog.save();
-    return res.status(203).json({
+    return res.status(200).json({
         message: "succesfully published"
     });
 }  
 
 export async function unpublishBlog(req, res){
+    if(!req.user){
+        throw new UnauthorizedRequestError("login required to unpublish a blog");
+    }
     const blogId=req.params.id;
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
         throw new BadRequestError("Invalid blog id");
@@ -154,7 +193,7 @@ export async function unpublishBlog(req, res){
     if(!blog){
         throw new NotFoundRequestError("blog not found");
     };
-    if(blog.createdBy !== req.user._id){
+    if(blog.createdBy.toString() !== req.user.user_id.toString()){
         throw new ForbiddenRequestError("unauthorized change");
     };
     blog.status="draft";

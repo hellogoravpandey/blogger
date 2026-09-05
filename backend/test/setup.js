@@ -1,0 +1,16 @@
+process.env.NODE_ENV = "test";
+process.env.PORT ??= "0";
+process.env.MONGODB_URL ??= "mongodb://127.0.0.1:27017/blogify-test";
+process.env.JWT_SECRET ??= "test-jwt-secret";
+process.env.CRYPTO_SECRET ??= "test-crypto-secret";
+process.env.GOOGLE_OAUTH_CLIENT_ID ??= "test-client-id";
+process.env.GOOGLE_OAUTH_CLIENT_SECRET ??= "test-client-secret";
+process.env.GOOGLE_EMAIL_REFRESH_TOKEN ??= "test-refresh-token";
+process.env.GOOGLE_EMAIL_USER ??= "test@example.com";
+process.env.CLOUDINARY_CLOUD_NAME ??= "test-cloud";
+process.env.CLOUDINARY_API_KEY ??= "test-key";
+process.env.CLOUDINARY_API_SECRET ??= "test-secret";
+process.env.CLOUDINARY_URL ??= "cloudinary://test:test@test-cloud";
+process.env.RESEND_SECRET_KEY ??= "test-resend-key";
+process.env.REDIS_HOST ??= "127.0.0.1";
+process.env.REDIS_PORT ??= "6379";

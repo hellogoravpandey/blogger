@@ -1,43 +1,43 @@
 import dotenv from "dotenv"
 dotenv.config();
 
-if(!process.env.PORT){
-    throw new Error(".env doesnot contains PORT")
-}
-if(!process.env.MONGODB_URL){
-    throw new Error(".env  doesnot contain MONGODB_URL")
-}
-if(!process.env.JWT_SECRET){
-    throw new Error(".env doesnot contains JWT_SECRET")
-}
-if(!process.env.GOOGLE_OAUTH_CLIENT_ID){
-    throw new Error(".env doesnot contains GOOGLE_OAUTH_CLIENT_ID")
-}
-if(!process.env.GOOGLE_OAUTH_CLIENT_SECRET){
-    throw new Error(".env doesnot contains GOOGLE_OAUTH_CLIENT_SECRET")
-}
-if(!process.env.GOOGLE_EMAIL_REFRESH_TOKEN){
-    throw new Error(".env doesnot contains GOOGLE_EMAIL_REFRESH_TOKEN")
-}
-if(!process.env.GOOGLE_EMAIL_USER){
-    throw new Error(".env doesnot contains GOOGLE_EMAIL_USER ")
-}
+// if(!process.env.PORT){
+//     throw new Error(".env doesnot contains PORT")
+// }
+// if(!process.env.MONGODB_URL){
+//     throw new Error(".env  doesnot contain MONGODB_URL")
+// }
+// if(!process.env.JWT_SECRET){
+//     throw new Error(".env doesnot contains JWT_SECRET")
+// }
+// if(!process.env.GOOGLE_OAUTH_CLIENT_ID){
+//     throw new Error(".env doesnot contains GOOGLE_OAUTH_CLIENT_ID")
+// }
+// if(!process.env.GOOGLE_OAUTH_CLIENT_SECRET){
+//     throw new Error(".env doesnot contains GOOGLE_OAUTH_CLIENT_SECRET")
+// }
+// if(!process.env.GOOGLE_EMAIL_REFRESH_TOKEN){
+//     throw new Error(".env doesnot contains GOOGLE_EMAIL_REFRESH_TOKEN")
+// }
+// if(!process.env.GOOGLE_EMAIL_USER){
+//     throw new Error(".env doesnot contains GOOGLE_EMAIL_USER ")
+// }
 
 
-// cloudinary variable exist?
-if(!process.env.CLOUDINARY_CLOUD_NAME){
-    throw new Error(".env doesnot contains CLOUDINAR_CLOUD_NAME")
-}
-if(!process.env.CLOUDINARY_API_KEY){
-    throw new Error(".env doesnot contains CLOUDINAR_API_KEY")
-}
+// // cloudinary variable exist?
+// if(!process.env.CLOUDINARY_CLOUD_NAME){
+//     throw new Error(".env doesnot contains CLOUDINAR_CLOUD_NAME")
+// }
+// if(!process.env.CLOUDINARY_API_KEY){
+//     throw new Error(".env doesnot contains CLOUDINAR_API_KEY")
+// }
 
-if(!process.env.CLOUDINARY_API_SECRET){
-    throw new Error(".env doesnot contains CLOUDINAR_SECRET_KEY")
-}
-if(!process.env.CLOUDINARY_URL){
-    throw new Error(".env doesnot contains CLOUDINAR_URL")
-}
+// if(!process.env.CLOUDINARY_API_SECRET){
+//     throw new Error(".env doesnot contains CLOUDINAR_SECRET_KEY")
+// }
+// if(!process.env.CLOUDINARY_URL){
+//     throw new Error(".env doesnot contains CLOUDINAR_URL")
+// }
 
 const config={
     PORT: process.env.PORT,
@@ -57,7 +57,8 @@ const config={
     GOOGLE_OAUTH_AUTHENTICATION_CALLBACK_URL: process.env.GOOGLE_OAUTH_AUTHENTICATION_CALLBACK_URL,
     RESEND_SECRET_KEY: process.env.RESEND_SECRET_KEY,
     REDIS_HOST: process.env.REDIS_HOST,
-    REDIS_PORT: process.env.REDIS_PORT
+    REDIS_PORT: process.env.REDIS_PORT,
+    ASSET_CLEANUP_AGE_MS: process.env.ASSET_CLEANUP_AGE_MS
 
 };
 

@@ -1,18 +1,6 @@
 import sendEmail from "../service/email.service.js";
 import config from "../src/config/config.js";
-import crypto from "crypto";
 
-export function generateOTP(length = 6) {
-    const digits = "0123456789";
-    let otp = "";
-
-    for (let i = 0; i < length; i++) {
-        const index = crypto.randomInt(0, digits.length);
-        otp += digits[index];
-    }
-
-    return otp;
-}
 
 
 export async function sendOtpVerificationEmail(to, otp) {

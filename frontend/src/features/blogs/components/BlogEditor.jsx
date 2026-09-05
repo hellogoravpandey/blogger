@@ -1,18 +1,36 @@
-import React from 'react'
+import { useRef, useState } from 'react'
 import {useEditor, EditorContent} from "@tiptap/react"
-import StarterKit from "@tiptap/starter-kit"
+import { uploadBlogImage } from "../blogs.api"
+import { blogEditorExtensions } from "./tiptapExtensions"
 
-function BlogEditor({onChange}) {
+function BlogEditor({onChange, draftId}) {
+        const fileInputRef = useRef(null);
+        const [uploading, setUploading] = useState(false);
 
     const editor = useEditor({
-    extensions: [
-        StarterKit,
-    ],
+        extensions: blogEditorExtensions,
     content: "",
     onUpdate: ({editor}) =>{
-        onChange(editor.getHTML());
+                onChange(editor.getJSON());
     }
   })
+
+    const handleImageSelected = async (event) => {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+        if (!file || !editor) return;
+
+        try {
+            setUploading(true);
+            const asset = await uploadBlogImage(file, draftId);
+            editor.chain().focus().setImage({
+                src: asset.url,
+                assetId: asset.assetId,
+            }).run();
+        } finally {
+            setUploading(false);
+        }
+    };
 
 
   return (
@@ -48,6 +66,14 @@ function BlogEditor({onChange}) {
             >
             1. List 
         </button>
+
+                <button type='button' onClick={()=>fileInputRef.current?.click()}
+                disabled={uploading || !editor}
+                className="rounded px-3 py-1.5 text-sm hover:bg-gray-200 disabled:opacity-50">
+                        {uploading ? "Uploading..." : "Image"}
+                </button>
+                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleImageSelected} className="hidden" />
 
     </div>
         {/* editor */}

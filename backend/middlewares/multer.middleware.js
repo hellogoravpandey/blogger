@@ -32,6 +32,14 @@ function avatarFilter(req, file, cb){
   return cb(new Error("Unexpected fieldname"));
 }
 
+function inlineImageFilter(req, file, cb){
+  if (file.fieldname !== "image") return cb(new Error("Unexpected fieldname"));
+  if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.mimetype)) {
+    return cb(new Error("File type should be jpeg, png, webp, or gif"));
+  }
+  return cb(null, true);
+}
+
 export const uploadAvatar = multer({
     storage,
     fileFilter: avatarFilter,
@@ -46,5 +54,13 @@ export const uploadBlogCoverImage = multer({
     limits: {
         fileSize: 5 * 1024 * 1024  // 5mb limit
     }
+});
+
+export const uploadInlineImage = multer({
+    storage,
+    fileFilter: inlineImageFilter,
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+    },
 });
 

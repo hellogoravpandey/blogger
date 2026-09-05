@@ -12,7 +12,12 @@ export async function uploadImage(imagePath){
     try {
         const upload=await cloudinary.uploader.upload(imagePath, options);    
         console.log(upload);
-        return upload.public_id;
+        return {
+            storageKey: upload.public_id,
+            url: upload.secure_url,
+            secure_url: upload.secure_url,
+            public_id: upload.public_id,
+        };
     } catch (error) {
         throw error;
     }
@@ -23,7 +28,10 @@ export async function uploadImage(imagePath){
 // deletion 
 
 export async function deleteImage(publicId) {
-    return await cloudinary.uploader.destroy(publicId);
+    const storageKey = typeof publicId === "object"
+        ? (publicId.storageKey || publicId.public_id)
+        : publicId;
+    return await cloudinary.uploader.destroy(storageKey);
 }
 
 

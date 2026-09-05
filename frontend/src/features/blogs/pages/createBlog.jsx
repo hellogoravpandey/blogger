@@ -1,25 +1,22 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import BlogEditor from '../components/BlogEditor';
 import { createBlog } from '../blogs.api';
 
 function CreateBlog() {
   const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [coverImage, setCoverImage] = useState(null);
+    const [content, setContent] = useState({ type: "doc", content: [{ type: "paragraph" }] });
+    const [draftId] = useState(() => crypto.randomUUID());
 
   const handleSubmit = async (e)=>{
     e.preventDefault();
     try {
-        const formData = {title, body, coverImage};
-        const data = await createBlog(formData);
+        const formData = {title, content, draftId};
+        await createBlog(formData);
     } catch (error) {
         // in case of error
         console.log("error in createBlog", error);
     }
   }
-  console.log("coverImage", coverImage);
-  
-
   return (
     <main className='mx-auto max-w-7xl px-3 py-8 sm:px-6 lg:px-8 '>
         <h1 className='mb-8 text-3xl font-bold'>
@@ -38,18 +35,6 @@ function CreateBlog() {
                 onChange={(e)=>setTitle(e.target.value.trim())}
                 />
                 
-                {/* cover image */}
-                <div>
-                    <label htmlFor="coverPage" className='mb-2 block text-sm font-medium'>
-                        coverImage
-                    </label>
-                    <input type="file" id='coverPage' accept='image/*' 
-                    onChange={(e)=>setCoverImage(e.target.files[0])}
-                    className='border border-gray-300 px-4 py-3 text-xl outline-none '
-                    
-                    />
-                </div>
-
                 {/* body */}
 
                 <div>
@@ -57,7 +42,7 @@ function CreateBlog() {
                         Content
                     </label>
 
-                    <BlogEditor onChange={setBody}/>
+                    <BlogEditor onChange={setContent} draftId={draftId}/>
                 </div>
 
                 <button type='submit' className='rounded-lg bg-gray-900 px-6 py-3 font-medium text-white hover:bg-gray-800'

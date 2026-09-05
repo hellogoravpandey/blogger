@@ -1,10 +1,20 @@
-import React from 'react'
+import { useEffect } from 'react'
+import { EditorContent, useEditor } from "@tiptap/react";
+import { blogEditorExtensions } from "./tiptapExtensions";
 
-function BlogContent({description=""}) {
+function BlogContent({content}) {
+  const editor = useEditor({
+    extensions: blogEditorExtensions,
+    content: content || { type: "doc", content: [] },
+    editable: false,
+  });
+
+  useEffect(() => {
+    if (editor && content) editor.commands.setContent(content);
+  }, [editor, content]);
+
   return (
-    <p className="mt-5 text-xl leading-relaxed text-gray-600">
-        {description}
-    </p>
+    <EditorContent editor={editor} className="prose mt-5 max-w-none" />
   )
 }
 
