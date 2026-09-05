@@ -5,6 +5,10 @@ export const getAllBlogs = (currentPage)=>{
     return apiFetch(`/blogs?page=${currentPage}`);
 } 
 
+export const getMyBlogs = () => {
+    return apiFetch("/blogs/mine");
+};
+
 export const getBlogById = (id)=>{
     return apiFetch (`/blogs/${id}`);
 }

@@ -7,6 +7,7 @@ import BlogDetails from "../features/blogs/pages/BlogDetails";
 import Register from "../features/auth/pages/Register";
 import MainLayout from "../pages/MainLayout";
 import CreateBlog from "../features/blogs/pages/createBlog";
+import Dashboard from "../pages/Dashboard";
 
 
 function AppRoutes() {
@@ -28,9 +29,11 @@ function AppRoutes() {
 
     {/* Protected routes */}
       <Route element={<ProtectedRoute />}>
-        {/* <Route path="/Dashboard" element=""/> */}
-        <Route path="/create-blog" element={<CreateBlog/>}/>
-     </Route>    
+        <Route element={<MainLayout />}>
+          <Route path="/dashboard" element={<Dashboard/>}/>
+          <Route path="/create-blog" element={<CreateBlog/>}/>
+        </Route>
+     </Route>
     </Routes>
     </ BrowserRouter>
   )

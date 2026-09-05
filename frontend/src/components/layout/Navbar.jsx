@@ -31,12 +31,14 @@ function Navbar() {
         </div>
 
         <div className="flex-1 hidden lg:flex gap-2 items-center  lg:justify-end  ">
-          <Link to="/create-blog"
-            className="flex items-center gap-1 px-6 py-2 border border-gray-400 rounded-lg hover:border-gray-600 ">
-                <FaBookOpen className=""/>
-                <span>Write</span>
-                <FaLongArrowAltRight />
-          </Link>
+                    {isAuthenticated && (
+                        <Link to="/create-blog"
+                            className="flex items-center gap-1 px-6 py-2 border border-gray-400 rounded-lg hover:border-gray-600 ">
+                                    <FaBookOpen className=""/>
+                                    <span>Write</span>
+                                    <FaLongArrowAltRight />
+                        </Link>
+                    )}
           {
             !isAuthenticated? (
             <Link to="/login" className=" px-6 py-2 rounded-lg bg-primary text-white font-semibold shadow-sm hover:bg-opacity-90 hover:opacity-90" >login</Link>

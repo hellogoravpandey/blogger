@@ -8,7 +8,9 @@ function Home() {
           id="hero"
           className="min-h-screen bg-gradient-to-br from-purple-50 via-orange-50 to-transparent">
           <Main />
-          <BlogList />
+          <section id="latest-blogs">
+            <BlogList />
+          </section>
         </div>
       </main>
     </div>

@@ -42,6 +42,21 @@ export async function   getAllBlogs(req, res){
     })
 }
 
+export async function getMyBlogs(req, res){
+    if(!req.user){
+        throw new UnauthorizedRequestError("login required to view your blogs");
+    }
+
+    const blogs = await Blog.find({ createdBy: req.user.user_id })
+        .sort({ createdAt: -1 })
+        .populate("createdBy", "username isVerified profileImageURL");
+
+    return res.status(200).json({
+        message: "success",
+        blogs,
+    });
+}
+
 
 
 export async function addNewBlog(req, res){
