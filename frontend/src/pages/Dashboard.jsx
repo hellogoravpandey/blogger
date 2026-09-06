@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { getMyBlogs } from "../features/blogs/blogs.api";
+import BlogCardActions from "../features/blogs/components/BlogCardActions";
 import scenary from "../assets/scenary.jpg";
 
 const sidebarItems = [
@@ -34,6 +35,10 @@ function Dashboard() {
       active = false;
     };
   }, []);
+
+  const removeBlog = (blogId) => {
+    setBlogs((currentBlogs) => currentBlogs.filter((blog) => blog._id !== blogId));
+  };
 
   return (
     <main className="min-h-[calc(100vh-73px)] bg-gray-50 px-3 py-6 sm:px-6 lg:px-8">
@@ -88,7 +93,10 @@ function Dashboard() {
                   <div className="flex min-w-0 flex-1 flex-col justify-between p-5">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">{blog.status}</span>
-                      <span className="text-xs text-gray-400">{new Date(blog.createdAt).toLocaleDateString()}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-400">{new Date(blog.createdAt).toLocaleDateString()}</span>
+                        <BlogCardActions blog={blog} onDeleted={removeBlog} />
+                      </div>
                     </div>
                     <div>
                       <h2 className="mt-3 line-clamp-2 text-xl font-semibold leading-tight text-gray-900 group-hover:underline">{blog.title}</h2>

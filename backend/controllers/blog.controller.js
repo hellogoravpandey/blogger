@@ -2,10 +2,9 @@ import Blog from "../models/blog.models.js";
 import Comment from "../models/comment.models.js";
 import mongoose from "mongoose";
 import User from "../models/user.models.js";
-import Asset from "../models/asset.models.js";
 import { deleteImage, uploadImage } from "../service/cloudinary.js";
 import { extractAssetIds } from "../utils/assetContent.utils.js";
-import { attachDraftAssets, reconcileDraftAssets, validateDraftAssets } from "../service/asset.service.js";
+import { attachDraftAssets, markBlogAssetsUnused, reconcileBlogAssets, reconcileDraftAssets } from "../service/asset.service.js";
 import {
     BadRequestError,
     ForbiddenRequestError,
@@ -123,19 +122,27 @@ export async function updateBlog(req, res){
     if(blog.createdBy.toString() !== req.user.user_id.toString()){
         throw new ForbiddenRequestError("unauthorized user");
     };
-    const {title, content, draftId}=req.body;
-    const assetIds = extractAssetIds(content);
-    await reconcileDraftAssets({
-        assetIds,
-        ownerId: req.user.user_id,
-        draftId: draftId || blog.draftId,
-    });
-    blog.title=title;
-    blog.content=content;
-    blog.draftId=draftId || blog.draftId;
+    const hasTitle = Object.prototype.hasOwnProperty.call(req.body, "title");
+    const hasContent = Object.prototype.hasOwnProperty.call(req.body, "content");
+    const draftId = req.body.draftId || blog.draftId;
+
+    if (hasContent) {
+        await reconcileBlogAssets({
+            oldAssetIds: extractAssetIds(blog.content),
+            newAssetIds: extractAssetIds(req.body.content),
+            ownerId: req.user.user_id,
+            blogId: blog._id,
+            draftId,
+            blogStatus: blog.status,
+        });
+        blog.content = req.body.content;
+        blog.draftId = draftId;
+    }
+    if (hasTitle) blog.title = req.body.title;
     await blog.save();
     return res.status(200).json({
-        message: "successfully updated the blog"
+        message: "successfully updated the blog",
+        blog,
     });
 }
 
@@ -155,10 +162,7 @@ export async function deleteBlog(req, res){
     if(blog.createdBy.toString() !== req.user.user_id.toString()){
         throw new ForbiddenRequestError("unauthorized user");
     };
-    await Asset.updateMany(
-        { blogId: blog._id, status: "ATTACHED" },
-        { $set: { status: "UNUSED", blogId: null } },
-    );
+    await markBlogAssetsUnused(blog._id);
     await blog.deleteOne();
     return res.status(200).json({
         message: "deleted the blog"

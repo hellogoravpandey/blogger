@@ -8,6 +8,7 @@ import Register from "../features/auth/pages/Register";
 import MainLayout from "../pages/MainLayout";
 import CreateBlog from "../features/blogs/pages/createBlog";
 import Dashboard from "../pages/Dashboard";
+import EditBlog from "../features/blogs/pages/EditBlog";
 
 
 function AppRoutes() {
@@ -32,6 +33,7 @@ function AppRoutes() {
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard/>}/>
           <Route path="/create-blog" element={<CreateBlog/>}/>
+          <Route path="/blogs/:id/edit" element={<EditBlog/>}/>
         </Route>
      </Route>
     </Routes>

@@ -10,6 +10,7 @@ export function validateEmail(email) {
     throw new ValidationError("Please enter a valid email.");
   }
   return email;
+
 }
 
 export function validateUsername(username) {
@@ -46,3 +47,4 @@ export function validateOtp(otp) {
   }
   return otp.trim();
 }
+

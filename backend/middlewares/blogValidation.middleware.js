@@ -33,6 +33,44 @@ export function validateAndNormalizeBlog(req, res, next) {
   }
 }
 
+export function validateAndNormalizeBlogUpdate(req, res, next) {
+  try {
+    assertBodyPresent(req);
+    const hasTitle = Object.prototype.hasOwnProperty.call(req.body, "title");
+    const hasContent = Object.prototype.hasOwnProperty.call(req.body, "content");
+
+    if (!hasTitle && !hasContent) {
+      throw new ValidationError("title or content is required");
+    }
+
+    if (hasTitle) {
+      if (typeof req.body.title !== "string" || req.body.title.trim() === "") {
+        throw new ValidationError("title cannot be empty");
+      }
+      req.body.title = req.body.title.trim();
+    }
+
+    if (hasContent) {
+      let { content } = req.body;
+      if (typeof content === "string") {
+        try {
+          content = JSON.parse(content);
+        } catch {
+          throw new ValidationError("content must be valid Tiptap JSON");
+        }
+      }
+      if (!isTiptapDocument(content)) {
+        throw new ValidationError("valid Tiptap content is required");
+      }
+      req.body.content = content;
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
 export function validateAndNormalizeAddComment(req, res, next) {
   try {
     assertBodyPresent(req);

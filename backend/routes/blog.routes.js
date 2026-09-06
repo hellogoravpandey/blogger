@@ -1,7 +1,7 @@
 import {Router} from "express";
 import { getAllBlogs, getMyBlogs, addNewBlog, addNewComment, getBlogByID, updateBlog, deleteBlog, publishBlog, unpublishBlog, likeBlog, unlikeBlog, bookmarkBlog, unbookmarkBlog, updateComment, deleteComment, getTopLevelComments, getAllReplies} from "../controllers/blog.controller.js";
 import {uploadBlogCoverImage} from "../middlewares/multer.middleware.js";
-import { validateAndNormalizeBlog, validateAndNormalizeAddComment, validateAndNormalizeUpdateComment } from "../middlewares/blogValidation.middleware.js";
+import { validateAndNormalizeBlog, validateAndNormalizeBlogUpdate, validateAndNormalizeAddComment, validateAndNormalizeUpdateComment } from "../middlewares/blogValidation.middleware.js";
 import { AppError, BadRequestError } from "../utils/errorHandler.utils.js";
 
 const router=Router();
@@ -17,7 +17,7 @@ router.post("/",(req, res, next) => {
     });}
     ,validateAndNormalizeBlog, addNewBlog);
 router.get("/:id", getBlogByID);
-router.patch("/:id", validateAndNormalizeBlog, updateBlog);
+router.patch("/:id", validateAndNormalizeBlogUpdate, updateBlog);
 router.delete("/:id", deleteBlog);
 router.patch("/:id/publish", publishBlog);
 router.patch("/:id/unpublish", unpublishBlog);

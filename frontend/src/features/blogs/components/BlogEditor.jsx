@@ -1,19 +1,25 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {useEditor, EditorContent} from "@tiptap/react"
 import { uploadBlogImage } from "../blogs.api"
 import { blogEditorExtensions } from "./tiptapExtensions"
 
-function BlogEditor({onChange, draftId}) {
+function BlogEditor({onChange, draftId, initialContent = null}) {
         const fileInputRef = useRef(null);
         const [uploading, setUploading] = useState(false);
 
     const editor = useEditor({
         extensions: blogEditorExtensions,
-    content: "",
+    content: initialContent || "",
     onUpdate: ({editor}) =>{
                 onChange(editor.getJSON());
     }
   })
+
+    useEffect(() => {
+        if (editor && initialContent) {
+            editor.commands.setContent(initialContent, false);
+        }
+    }, [editor, initialContent]);
 
     const handleImageSelected = async (event) => {
         const file = event.target.files?.[0];

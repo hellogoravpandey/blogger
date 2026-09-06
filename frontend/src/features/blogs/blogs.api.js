@@ -13,6 +13,19 @@ export const getBlogById = (id)=>{
     return apiFetch (`/blogs/${id}`);
 }
 
+export const updateBlog = (id, data) => {
+    return apiFetch(`/blogs/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+    });
+};
+
+export const deleteBlog = (id) => {
+    return apiFetch(`/blogs/${id}`, {
+        method: "DELETE",
+    });
+};
+
 
 export const createBlog = (formData)=>{
     return apiFetch('/blogs', {
