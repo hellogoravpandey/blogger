@@ -51,7 +51,7 @@ export async function attachDraftAssets({ assetIds, ownerId, draftId, blogId }) 
     }
 }
 
-export async function reconcileBlogAssets({ oldAssetIds, newAssetIds, ownerId, blogId, draftId, blogStatus }) {
+export async function reconcileBlogAssets({ oldAssetIds, newAssetIds, ownerId, actorId = ownerId, blogId, draftId, blogStatus }) {
     const oldIds = new Set(oldAssetIds);
     const newIds = new Set(newAssetIds);
     const addedIds = [...newIds].filter((assetId) => !oldIds.has(assetId));
@@ -70,14 +70,12 @@ export async function reconcileBlogAssets({ oldAssetIds, newAssetIds, ownerId, b
     }
 
     for (const asset of assets) {
-        if (asset.ownerId.toString() !== ownerId.toString()) {
-            throw new ForbiddenRequestError("asset belongs to another user");
-        }
-
         const isExistingBlogAsset = asset.status === "ATTACHED"
-            && asset.blogId?.toString() === blogId.toString();
+            && asset.blogId?.toString() === blogId.toString()
+            && asset.ownerId.toString() === ownerId.toString();
         const isNewDraftAsset = (asset.status === "TEMPORARY" || asset.status === "UNUSED")
-            && asset.draftId === draftId;
+            && asset.draftId === draftId
+            && asset.ownerId.toString() === actorId.toString();
 
         if (!isExistingBlogAsset && !isNewDraftAsset) {
             throw new ForbiddenRequestError("asset cannot be attached to this blog");
@@ -96,7 +94,7 @@ export async function reconcileBlogAssets({ oldAssetIds, newAssetIds, ownerId, b
             ? { $set: { status: "ATTACHED", blogId, draftId: null } }
             : { $set: { status: "TEMPORARY", blogId: null, draftId } };
         await Asset.updateMany(
-            { _id: { $in: addedIds }, ownerId, draftId, status: { $in: ["TEMPORARY", "UNUSED"] } },
+            { _id: { $in: addedIds }, ownerId: actorId, draftId, status: { $in: ["TEMPORARY", "UNUSED"] } },
             update,
         );
     }

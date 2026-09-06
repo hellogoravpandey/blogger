@@ -5,8 +5,9 @@ import blogRouter from "./routes/blog.routes.js";
 import { createApp } from "./src/app.js";
 import uploadRouter from "./routes/upload.routes.js";
 import { scheduleAssetCleanup } from "./src/queues/email.queue.js";
+import adminRouter from "./routes/admin.routes.js";
 
-const app = createApp({ authRouter, blogRouter, uploadRouter });
+const app = createApp({ authRouter, blogRouter, uploadRouter, adminRouter });
 
 //connection to mongoDB
 connectToMongoDb();

@@ -34,6 +34,8 @@ export const getCurrentUser = () => {
 
 };
 
+export const getUserDashboard = () => apiFetch("/auth/dashboard");
+
 
 export const getRefreshToken = () => {
     return apiFetch(

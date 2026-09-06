@@ -7,7 +7,7 @@ import cors from "cors"
 import { checkForAuthentication } from "../middlewares/authentication.middleware.js";
 import { errorHandler, notFoundHandler } from "../middlewares/errorHandler.middleware.js";
 
-export function createApp({ authRouter = null, blogRouter = null, uploadRouter = null } = {}) {
+export function createApp({ authRouter = null, blogRouter = null, uploadRouter = null, adminRouter = null } = {}) {
 	const app=express();
 	app.use(express.json());
 	app.use(urlencoded({extended: false}));
@@ -23,6 +23,7 @@ export function createApp({ authRouter = null, blogRouter = null, uploadRouter =
 	if (authRouter) app.use("/api/auth", checkForAuthentication, authRouter);
 	if (blogRouter) app.use("/api/blogs", checkForAuthentication, blogRouter);
 	if (uploadRouter) app.use("/api/uploads", checkForAuthentication, uploadRouter);
+	if (adminRouter) app.use("/api/admin", checkForAuthentication, adminRouter);
 	app.use(notFoundHandler);
 	app.use(errorHandler);
 	return app;

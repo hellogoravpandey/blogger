@@ -7,7 +7,7 @@ import { useState } from "react";
 import Modal from "../ui/Modal";
 
 function Navbar() {
- const {user, isAuthenticated, logout, logoutError, logoutLoading, clearLogoutError } = useAuth();
+ const {user, isAuthenticated, isAdmin, logout, logoutError, logoutLoading, clearLogoutError } = useAuth();
  const [showMenu, setShowMenu] = useState(false);
  const [showMobileMenu, setShowMobileMenu] = useState(false);
  const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -55,6 +55,11 @@ function Navbar() {
                         <Link to="/dashboard" className=" px-4 py-1 rounded-lg hover:bg-gray-100 font-medium text-gray-500">
                             {user?.username}
                         </Link>
+                                                {isAdmin && (
+                                                    <Link to="/admin/dashboard" className="px-4 py-1 rounded-lg hover:bg-gray-100 font-medium text-gray-500">
+                                                        Admin dashboard
+                                                    </Link>
+                                                )}
                          <button  className=" px-4 py-1 rounded-lg hover:bg-gray-100 font-medium text-gray-500"
                          onClick={()=>{
                             clearLogoutError();

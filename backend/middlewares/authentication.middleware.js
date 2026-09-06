@@ -1,7 +1,8 @@
 import User from "../models/user.models.js";
+import { UnauthorizedRequestError } from "../utils/errorHandler.utils.js";
 import { validateJWTToken } from "../service/jwtauthenticationservice.js";
 
-export function checkForAuthentication(req, res, next){
+export async function checkForAuthentication(req, res, next){
     // steps
     // 0. req.user=null
     // 1. {accessToken} = req.body
@@ -24,9 +25,16 @@ export function checkForAuthentication(req, res, next){
     const accessToken=req.headers.authorization.split(" ")[1];
     try {
         const decoded=validateJWTToken(accessToken);
-        console.log("req.user before ", req.user);
-        req.user=decoded;
-        console.log("req.user after ", req.user);
+        const user = await User.findById(decoded.user_id)
+            .select("_id username email role isVerified profileImageURL bookmarks");
+        if (!user) return next(new UnauthorizedRequestError("user no longer exists"));
+        req.user={
+            user_id: user._id,
+            session_id: decoded.session_id,
+            role: user.role || "USER",
+            username: user.username,
+            email: user.email,
+        };
         return next();
     } catch (error) {
         console.log("error inside checkForAuth", error);

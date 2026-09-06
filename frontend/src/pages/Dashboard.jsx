@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { getMyBlogs } from "../features/blogs/blogs.api";
+import { getUserDashboard } from "../features/auth/auth.api";
 import BlogCardActions from "../features/blogs/components/BlogCardActions";
 import scenary from "../assets/scenary.jpg";
 
@@ -15,14 +16,18 @@ function Dashboard() {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     let active = true;
 
     const loadBlogs = async () => {
       try {
-        const data = await getMyBlogs();
-        if (active) setBlogs(data.blogs || []);
+        const [data, dashboard] = await Promise.all([getMyBlogs(), getUserDashboard()]);
+        if (active) {
+          setBlogs(data.blogs || []);
+          setStats(dashboard.stats);
+        }
       } catch (requestError) {
         if (active) setError(requestError.message);
       } finally {
@@ -65,6 +70,15 @@ function Dashboard() {
             <p className="text-sm font-medium text-gray-500">Dashboard</p>
             <h1 className="mt-1 text-3xl font-bold text-gray-900">My blogs</h1>
             <p className="mt-2 text-gray-600">All drafts and published blogs owned by you.</p>
+          </div>
+
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[["My blogs", stats?.totalBlogs], ["Published", stats?.publishedBlogs], ["Drafts", stats?.draftBlogs], ["Assets", stats?.assetCount]].map(([label, value]) => (
+              <article key={label} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <p className="text-sm text-gray-500">{label}</p>
+                <p className="mt-1 text-2xl font-bold text-gray-900">{value ?? 0}</p>
+              </article>
+            ))}
           </div>
 
           {loading && <p className="text-gray-600">Loading your blogs...</p>}

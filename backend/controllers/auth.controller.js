@@ -18,7 +18,7 @@ import {
 
 export async function getUserInfo(req, res){
         const user = await User.findOne({_id: req.user?.user_id})
-        .select("username profileImageURL email isVerified bookmarks");
+        .select("username profileImageURL email isVerified bookmarks role");
         if(!user){
             throw new UnauthorizedRequestError("No such user found");
         }
@@ -43,6 +43,7 @@ export async function register(req, res){
             username,
             email,
             password: hashedPassword,
+                role: "USER",
             profileImageURL: uploadedProfileImage?.secure_url
         }); 
         // added the jonb into the queue 

@@ -1,0 +1,35 @@
+[33mcommit 03db44f8253faca73ba3fa6d98e9071ebc8d15f1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m
+Author: Gourav Pandey <pandeygorav321@gmail.com>
+Date:   Sun Sep 6 18:45:32 2026 +0530
+
+    implemented the update and delete blog feature
+
+[33mcommit f3ebff8b085377cbab3a53cfff40f0587f9fc29a[m
+Author: Gourav Pandey <pandeygorav321@gmail.com>
+Date:   Sat Sep 5 16:38:37 2026 +0530
+
+    implement the user dashboard ui
+
+[33mcommit 80d1e74041784be96b966fa7d1b407e739a0dbbb[m
+Author: Gourav Pandey <pandeygorav321@gmail.com>
+Date:   Sat Sep 5 15:07:57 2026 +0530
+
+    implemented the create blog feature
+
+[33mcommit 2ccd2707c0a3fef76f7ef67f372975fb993a7cfc[m
+Author: Gourav Pandey <pandeygorav321@gmail.com>
+Date:   Fri Sep 4 20:31:53 2026 +0530
+
+    implemented global error handler in the backend
+
+[33mcommit bada69ba89151325636edcbe8697ed97ba4d2727[m
+Author: Gourav Pandey <pandeygorav321@gmail.com>
+Date:   Fri Sep 4 20:31:11 2026 +0530
+
+    implemented global error handler in the backend
+
+[33mcommit 02c7fcaa89ba63a86f3d4b98efe12f6cf6b94bfd[m
+Author: Gourav Pandey <pandeygorav321@gmail.com>
+Date:   Fri Sep 4 19:28:35 2026 +0530
+
+    initial implementation of blogify

@@ -5,6 +5,7 @@ import { validate } from "../middlewares/validation.middleware.js";
 import { validateEmail, validateUsername, validatePassword, validateOtp } from "../validators/userAuth.validators.js";
 import { uploadAvatar } from "../middlewares/multer.middleware.js";
 import { AppError, BadRequestError } from "../utils/errorHandler.utils.js";
+import { getUserDashboard } from "../controllers/user.controller.js";
 
 const router=Router();
 
@@ -25,6 +26,7 @@ router.post("/register", (req, res, next)=>{
 
 //get me
 router.get("/me", getUserInfo);
+router.get("/dashboard", getUserDashboard);
 
 // login
 router.post("/login", validate([

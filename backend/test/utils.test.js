@@ -9,6 +9,7 @@ import {
 import { createHashOf } from "../service/hashing.service.js";
 import { setJWTToken, validateJWTToken } from "../service/jwtauthenticationservice.js";
 import { extractAssetIds, isTiptapDocument } from "../utils/assetContent.utils.js";
+import { canManageBlog } from "../policies/blog.policy.js";
 import {
     validateEmail,
     validateOtp,
@@ -88,5 +89,18 @@ describe("Tiptap asset content utilities", () => {
         expect(isTiptapDocument(content)).toBe(true);
         expect(extractAssetIds(content)).toEqual(["asset-a", "asset-b"]);
         expect(isTiptapDocument("<p>old html</p>")).toBe(false);
+    });
+});
+
+describe("blog authorization policy", () => {
+    it("allows admins across owners and users only on their own blogs", () => {
+        const owner = { user_id: "user-a", role: "USER" };
+        const otherUser = { user_id: "user-b", role: "USER" };
+        const admin = { user_id: "admin", role: "ADMIN" };
+        const blog = { createdBy: "user-a" };
+
+        expect(canManageBlog(owner, blog)).toBe(true);
+        expect(canManageBlog(otherUser, blog)).toBe(false);
+        expect(canManageBlog(admin, blog)).toBe(true);
     });
 });

@@ -22,6 +22,12 @@ const userSchema=new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    role: {
+        type: String,
+        enum: ["USER", "ADMIN"],
+        default: "USER",
+        index: true,
+    },
     bookmarks:[
         {
             type: mongoose.Types.ObjectId,

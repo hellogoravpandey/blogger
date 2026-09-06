@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react"
-import { clearAccessToken, getAccessToken, setAccessToken } from "../services/authStore";
+import { clearAccessToken, setAccessToken } from "../services/authStore";
 import { loginUser, logoutUser, getCurrentUser,  getRefreshToken, registerUser} from "../features/auth/auth.api";
 
 const AuthContext = createContext(null);
@@ -128,7 +128,8 @@ export const AuthProvider =  ({children })=>{
     const value = {
         user,
         loading,
-        isAuthenticated:  user?true:false,  
+        isAuthenticated: Boolean(user),
+        isAdmin: user?.role === "ADMIN",
         // functions
         register,
         login,

@@ -5,6 +5,7 @@ import User from "../models/user.models.js";
 import { deleteImage, uploadImage } from "../service/cloudinary.js";
 import { extractAssetIds } from "../utils/assetContent.utils.js";
 import { attachDraftAssets, markBlogAssetsUnused, reconcileBlogAssets, reconcileDraftAssets } from "../service/asset.service.js";
+import { assertCanManageBlog } from "../policies/blog.policy.js";
 import {
     BadRequestError,
     ForbiddenRequestError,
@@ -119,9 +120,7 @@ export async function updateBlog(req, res){
     if(!blog){
         throw new NotFoundRequestError("blog not found");
     };
-    if(blog.createdBy.toString() !== req.user.user_id.toString()){
-        throw new ForbiddenRequestError("unauthorized user");
-    };
+    assertCanManageBlog(req.user, blog);
     const hasTitle = Object.prototype.hasOwnProperty.call(req.body, "title");
     const hasContent = Object.prototype.hasOwnProperty.call(req.body, "content");
     const draftId = req.body.draftId || blog.draftId;
@@ -130,7 +129,8 @@ export async function updateBlog(req, res){
         await reconcileBlogAssets({
             oldAssetIds: extractAssetIds(blog.content),
             newAssetIds: extractAssetIds(req.body.content),
-            ownerId: req.user.user_id,
+            ownerId: blog.createdBy,
+            actorId: req.user.user_id,
             blogId: blog._id,
             draftId,
             blogStatus: blog.status,
@@ -159,9 +159,7 @@ export async function deleteBlog(req, res){
         throw new NotFoundRequestError("blog not found");
     };
 
-    if(blog.createdBy.toString() !== req.user.user_id.toString()){
-        throw new ForbiddenRequestError("unauthorized user");
-    };
+    assertCanManageBlog(req.user, blog);
     await markBlogAssetsUnused(blog._id);
     await blog.deleteOne();
     return res.status(200).json({
@@ -182,13 +180,11 @@ export async function publishBlog(req, res){
     if(!blog){
         throw new NotFoundRequestError("blog not found");
     };
-    if(blog.createdBy.toString() !== req.user.user_id.toString()){
-        throw new ForbiddenRequestError("unauthorized change");
-    };
+    assertCanManageBlog(req.user, blog);
     const assetIds = extractAssetIds(blog.content);
     await attachDraftAssets({
         assetIds,
-        ownerId: req.user.user_id,
+        ownerId: blog.createdBy,
         draftId: blog.draftId,
         blogId: blog._id,
     });
@@ -212,9 +208,7 @@ export async function unpublishBlog(req, res){
     if(!blog){
         throw new NotFoundRequestError("blog not found");
     };
-    if(blog.createdBy.toString() !== req.user.user_id.toString()){
-        throw new ForbiddenRequestError("unauthorized change");
-    };
+    assertCanManageBlog(req.user, blog);
     blog.status="draft";
     await blog.save();
     return res.status(203).json({

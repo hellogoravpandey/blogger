@@ -12,7 +12,8 @@
     "test:coverage": "vitest run --coverage",
     "start": "node server.js",
     "worker": "nodemon ./src/workers/email.worker.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "seed:admin": "node scripts/seedAdmin.js"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^3.2.4",

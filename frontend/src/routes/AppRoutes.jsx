@@ -9,6 +9,8 @@ import MainLayout from "../pages/MainLayout";
 import CreateBlog from "../features/blogs/pages/createBlog";
 import Dashboard from "../pages/Dashboard";
 import EditBlog from "../features/blogs/pages/EditBlog";
+import AdminRoute from "./AdminRoute";
+import AdminDashboard from "../features/admin/pages/AdminDashboard";
 
 
 function AppRoutes() {
@@ -36,6 +38,11 @@ function AppRoutes() {
           <Route path="/blogs/:id/edit" element={<EditBlog/>}/>
         </Route>
      </Route>
+      <Route element={<AdminRoute />}>
+        <Route element={<MainLayout />}>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        </Route>
+      </Route>
     </Routes>
     </ BrowserRouter>
   )
